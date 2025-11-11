@@ -4,11 +4,14 @@ package servlets;
  * Fecha: 06/11/2025
  * Versión: 1.0
  * Descripción: Esta clase es un servlet que nos permitirá manejar peticiones HTTP tipo GET que el usuario
- * realice desde el navegador al dar click en disintos hipervínculos que utilizan las 3 llaves de este servlet
- * para solicitar la descarga de archivos xls, json o mostrar un archivo html dinámico.
+ * realice desde el navegador al dar click en un hipervínculo para mostrar un archivo html dinámico con
+ * estructuras condicionales que muestran distintos datos de una tabla de productos solo si el usuario
+ * se ha logeado, es decir solo si existe la cookie username.
  * */
 import jakarta.servlet.ServletException;
 import java.io.IOException;
+
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,90 +26,55 @@ import services.ProductoServicesImplement;
 import models.Producto;
 
 //Importamos la clase para crear listas
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 
-
-/*Definimos 3 llaves (paths) agregando antes el símbolo de llaves y separándolos por comas
-Un servlet puede tener más de 1 llave, porque al final son rutas a las cuales el usuario
-puede acceder para interactuar con el mismo servlet
+/*Definimos una llave para acceder a este servlet
  */
-@WebServlet({"/productos.xls", "/productos.html", "/productos.json"})
+@WebServlet("/productos.html")
 public class ProductoXlsServlet extends HttpServlet {
     //Sobreescribimos el metodo GET
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+        //Obtener las cookies de la petición GET
+        Cookie[] cookies = req.getCookies()!=null ? req.getCookies() : new Cookie[0];
+
+        /*Este bloque de código devuelve un Optional<String> (contenedor que puede tener un valor o no tenerlo),
+          contiene el valor de la cookie si existe y
+          está vacío si no existe, en el String del Optional estaría nuestro valor para la clave
+          Busco dentro de la cookie si existe algo de información
+          Se convierte el arreglo de cookies en un Stream, es decir, una secuencia que se pude filtrar y procesar.
+        */
+        Optional<String> cookieOptional = Arrays.stream(cookies)
+                //Filter recorre todas las cookies y solo deja pasar las cookies cuyo nombre sea "username".
+                .filter(c->"username".equals(c.getName()))
+                //Si encontró una cookie con ese nombre, ahora la convierte a su valor String.
+                .map(Cookie::getValue)
+                //findAny() busca cualquier coincidencia, podrían existir varios username pero en este caso solo hay uno.
+                .findAny();
+        //Si el contenedor cookieOptional tiene un valor la variable booleana es verdadera y si no es false
+        boolean usuarioLogeado = cookieOptional.isPresent();
+
+        //Guardamos el valor de la cookie si existe y si no el valor es un string vacío("")
+        String username = cookieOptional.orElse("");
+
         /*Creamos un objeto de tipo ProductosServices que hace referencia a la clase ProductosServicesImplement
          * el cual implementa el metodo, esto es polimorfismo ya que el objeto de tipo ProductoServices en
          * realidad es una instancia de ProductosServicesImplement.
          * Esto se hace así porque en Java es buena práctica programar contra interfaces, no contra clase, por lo
          * tanto, esto se hace siempre que queremos usar una clase que implementa un metodo de una interfaz.
          */
-        ProductoServices service =  new ProductoServicesImplement();
+        ProductoServices service = new ProductoServicesImplement();
 
         //Definimos una lista que usará el metodo listar de nuestro objeto services que ya implementó el metodo
         List<Producto> productos = service.listar();
 
         //Definimos el tipo de contenido que se enviará como respuesta a la petición
         resp.setContentType("text/html;charset=UTF-8");
-        /*
-         * Esta variable es fundamental para entender cómo el servlet sabe qué llave utilizar, el metodo
-         * getServletPath nos devuelve exactamente la llave que se usó, si el usuario dio click en el
-         * hipervínculo que usa la llave "producto.xls", este metodo devuelve esa llave y luego se decide
-         * qué hacer con base a ello.
-         * */
-        String servletPath = req.getServletPath();
-        //Creamos una variable booleana que nos permite saber si el usuario accedió a la ruta de la llave productos.xls
-        boolean esXls=servletPath.endsWith("xls");
-        //Creamos una variable booleana que nos permite saber si el usuario accedió a la ruta de la llave productos.json
-        boolean esJson = servletPath.endsWith("json");
-        /*
-         * Este bloque permite verificar si el usuario accedió a la ruta de llave productos.xls, productos.json o a productos.html
-         * y dependiendo del caso se descarga un archivo xls (excel), un archivo json o muestra simplemente el HTML generado con
-         * el print writer
-         * */
-        if(esXls){
-            /*
-             * Este es un nuevo tipo de contenido que le indica al navegador que recibirá un
-             * archivo Excel, a pesar de que realmente es un html, pero excel es capaz de interpretarlo
-             * */
-            resp.setContentType("application/vnd.ms-excel");
-            /*
-             * Se agrega un header a la respuesta de la petición, indicando especificaciones para la descarga del archivo:
-             * attachment obliga al navegador a descargarlo
-             * filename=productos.xls es el nombre que tendrá el archivo
-             * */
-            resp.setHeader("Content-Disposition", "attachment; filename=productos.xls");
-        } else if(esJson){
-            //Cambiamos el tipo de contenido de respuesta a json
-            resp.setContentType("application/json;charset=UTF-8");
-            //Establecemos un header para la respuesta indicándole al navegador la descarga obligatoria del archivo json
-            resp.setHeader("Content-Disposition", "attachment; filename=productos.json");
-            //Creamos un archivo JSON utilizando el PrintWriter dentro de un try-with-resources para cerrarlo automáticamente
-            try(PrintWriter out = resp.getWriter()){
-                //Imprimimos corchetes porque vamos a crear una colección de documentos (productos)
-                out.println("[");
-                //Utilizamos un for porque nos permite controlar más específicamente lo que podemos hacer en cada iteración
-                for(int i=0;i<productos.size();i++){
-                    //Esta variable almacenará el objeto de la iteración actual con base a la variable auxiliar i
-                    Producto p = productos.get(i);
-                    //Imprimimos un corchete que representa el inicio de un documento de la colección
-                    out.println("{");
-                    //Es importante utilizar \ para poder imprimir comillas y seguir el formato clave valor de un archivo JSON
-                    out.println(" \"id\":" + p.getIdProducto()+",");
-                    //Utilizamos los métodos públicos getters para acceder al valor de los atributos de un producto
-                    out.println(" \"nombre\":\""+ p.getNombre()+ "\",");
-                    out.println(" \"tipo\":\"" + p.getTipo()+ "\",");
-                    out.println(" \"precio\":" + p.getPrecio());
-                    //Esta validación nos permite colocar comas al final de cada documento para seguir la estructura de un archivo JSON
-                    out.println(" }" +(i<productos.size()-1 ? "," : ""));
-                }
-                out.println("]");
-            }
-            //Para que cuando se termine el bucle no se procese la creación del archivo HTML
-            return;
-        }
-        resp.setContentType("text/html;charset=UTF-8");
+
         /*
          * Usamos un try-with-resources para que el objeto PrintWriter se cierre automáticamente
          * una vez se termine el bloque try
@@ -129,6 +97,10 @@ public class ProductoXlsServlet extends HttpServlet {
             out.println("</head>");
             out.println("<body>");
             out.println("<h2>Lista de Productos</h2>");
+            //Mostramos un mensaje si el usuario se logeo correctamente
+            if (usuarioLogeado) {
+                out.println("<h3> Bienvenido " + username + "</h3>");
+            }
             //Creamos una tabla y definimos atributos para darle una presentación más agradable
             out.println("<table border= '1' cellpadding= '5' cellspacing= '0' width= '55%' bgcolor='#f5f5f5'> ");
             /*
@@ -144,7 +116,11 @@ public class ProductoXlsServlet extends HttpServlet {
             out.println("<th>ID PRODUCTO</th>");
             out.println("<th>NOMBRE</th>");
             out.println("<th>TIPO</th>");
-            out.println("<th>PRECIO</th>");
+            //Se muestra el campo de precio solo si el usuario está logeado
+            if(usuarioLogeado) {
+                out.println("<th>PRECIO</th>");
+            }
+
             out.println("</tr>");
             out.println("</thead>");
             //Cuerpo de la tabla
@@ -160,7 +136,9 @@ public class ProductoXlsServlet extends HttpServlet {
                 out.println("<td>" + p.getIdProducto() + "</td>");
                 out.println("<td>" + p.getNombre() + "</td>");
                 out.println("<td>" + p.getTipo() + "</td>");
-                out.println("<td>" + p.getPrecio()+ "</td>");
+                if(usuarioLogeado) {
+                    out.println("<td>" + p.getPrecio()+ "</td>");
+                }
                 out.println("</tr>");
             });
             out.println("</tbody>");
