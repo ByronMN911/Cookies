@@ -1,0 +1,54 @@
+<!--
+* Autor: Byron Melo
+* Fecha: 06/11/2025
+* Versión: 1.0
+* Descripción: Este archivo html actúa como la vista de nuestra aplicación web, tiene 4 hipervínculos
+que permiten al usuario utilizar el servlet para descargar un archivos xls, json, mostrar un archivo
+html dinámico o regresar al menú principal.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Visualizar Productos de la Tienda</title>
+    <!--
+   Se utiliza la etiqueta style para definir estilos que se aplican a las distintas
+   estructuras html que usamos como títulos e hipervínculos
+   -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f6fa;
+            color: #2f3640;
+            text-align: center;
+            padding: 40px;
+        }
+        h1 {
+            color: #273c75;
+        }
+
+        a {
+            color: #0097e6;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<!--Hipervínculo que utiliza la llave productos.html del servlet -->
+<a href="/manejocookies/productos.html">Ver catálogo de productos</a>
+<br><br>
+<!--Hipervínculo que utiliza la llave productos.xls del servlet -->
+<a href="/manejocookies/productos.xls">Descargar el archivo xls (excel) de la tabla productos</a>
+<br><br>
+<!--Hipervínculo que utiliza la llave productos.json del servlet -->
+<a href="/manejocookies/productos.json">Descargar el archivo json de la tabla productos</a>
+<br><br>
+<!--Hipervínculo que nos redirige a la página principal index.html-->
+<a href="/manejocookies/index.html">Volver a la página principal</a>
+</body>
+</html>

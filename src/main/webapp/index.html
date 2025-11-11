@@ -1,0 +1,53 @@
+<!--
+Autor: Byron Melo
+Fecha: 05-11-2025
+Versión: 1.0
+Descripción: Archivo HTML que sirve como interfaz para el usuario en el navegador en donde
+se puede dar click a 1 hipervínculo que representa una solicitud HTTP para ver los cabeceros de
+la petición y el otro hipervínculo nos muestra un archivo HTML
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manejo De Cabeceros</title>
+    <!--
+    Se utiliza la etiqueta style para definir estilos que se aplican a las distintas
+    estructuras html que usamos como títulos e hipervínculos
+    -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f6fa;
+            color: #2f3640;
+            text-align: center;
+            padding: 40px;
+        }
+        h1 {
+            color: #273c75;
+        }
+
+        a {
+            color: #0097e6;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<!--
+Creamos un hipervínculo en donde utilizamos la llave para acceder a un servlet.
+-->
+
+<h1>Tienda Online</h1>
+<!--Hipervínculo que nos redirige a la página de productos-->
+<a href="/manejocookies/Producto.html">Ir a productos</a>
+<br><br>
+<a href="/manejocookies/login.jsp">Login</a>
+</body>
+</html>

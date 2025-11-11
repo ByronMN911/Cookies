@@ -1,0 +1,13 @@
+<component name="ArtifactManager">
+  <artifact type="exploded-war" name="manejocookies">
+    <output-path>$PROJECT_DIR$/out/artifacts/manejocookies</output-path>
+    <root id="root">
+      <element id="directory" name="WEB-INF">
+        <element id="directory" name="classes">
+          <element id="module-output" name="manejocookies" />
+        </element>
+      </element>
+      <element id="javaee-facet-resources" facet="manejocookies/web/Web" />
+    </root>
+  </artifact>
+</component>
